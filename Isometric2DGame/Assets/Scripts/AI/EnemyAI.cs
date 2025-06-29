@@ -9,8 +9,6 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private float chaseRadius = 5f;
     [Tooltip("Distance at which the enemy starts attacking the player")]
     [SerializeField] private float attackRange = 1.2f;
-    [Tooltip("Movement speed of the enemy")]
-    [SerializeField] private float moveSpeed = 2f;
     [Tooltip("Patrol points for the enemy to move between. If empty, random points will be generated around spawn.")]
     [SerializeField] private Vector2[] patrolPoints;
     [Tooltip("Number of random patrol points to generate if none are set in the inspector.")]
@@ -22,8 +20,15 @@ public class EnemyAI : MonoBehaviour
     [Tooltip("Reference to the player transform, defaults to an object the the 'Player' tag")]
     [SerializeField] private Transform player;
 
+    public Transform Player => player; // Public property to access the player transform
+    private EnemyStats stats;
     private IEnemyState currentState;                          // Current state object
     private EnemyState currentStateType = EnemyState.Patrol;   // Current state type (enum)
+
+    private void Awake()
+    {
+        stats = GetComponent<EnemyStats>();
+    }
 
     /// <summary>
     /// Initializes the enemy, generates patrol points, and sets the initial state.
@@ -57,7 +62,7 @@ public class EnemyAI : MonoBehaviour
             }
         }
 
-        SetState(new EnemyPatrolState(this, patrolPoints, moveSpeed), EnemyState.Patrol);
+        SetState(new EnemyPatrolState(this, patrolPoints, stats.MoveSpeed), EnemyState.Patrol);
     }
 
     // Helper to check if a point is too close to any existing points
@@ -89,19 +94,19 @@ public class EnemyAI : MonoBehaviour
                 case EnemyState.Patrol:
                     // Switch to Chase if player is within chase radius
                     if (distance <= chaseRadius)
-                        SetState(new EnemyChaseState(this, player, moveSpeed), EnemyState.Chase);
+                        SetState(new EnemyChaseState(this, player, stats.MoveSpeed), EnemyState.Chase);
                     break;
 
                 case EnemyState.Idle:
                     // Switch to Chase if player is within chase radius
                     if (distance <= chaseRadius)
-                        SetState(new EnemyChaseState(this, player, moveSpeed), EnemyState.Chase);
+                        SetState(new EnemyChaseState(this, player, stats.MoveSpeed), EnemyState.Chase);
                     break;
 
                 case EnemyState.Chase:
                     // Return to Patrol if player is out of chase radius
                     if (distance > chaseRadius)
-                        SetState(new EnemyPatrolState(this, patrolPoints, moveSpeed), EnemyState.Patrol);
+                        SetState(new EnemyPatrolState(this, patrolPoints, stats.MoveSpeed), EnemyState.Patrol);
                     // Switch to Attack if player is within attack range
                     else if (distance <= attackRange)
                         SetState(new EnemyAttackState(this), EnemyState.Attack);
@@ -110,7 +115,7 @@ public class EnemyAI : MonoBehaviour
                 case EnemyState.Attack:
                     // Return to Chase if player moves out of attack range
                     if (distance > attackRange)
-                        SetState(new EnemyChaseState(this, player, moveSpeed), EnemyState.Chase);
+                        SetState(new EnemyChaseState(this, player, stats.MoveSpeed), EnemyState.Chase);
                     break;
             }
         }
