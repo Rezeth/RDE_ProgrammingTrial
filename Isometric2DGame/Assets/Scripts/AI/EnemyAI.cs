@@ -7,8 +7,6 @@ public class EnemyAI : MonoBehaviour
 {
     [Tooltip("Distance at which the enemy starts chasing the player")]
     [SerializeField] private float chaseRadius = 5f;
-    [Tooltip("Distance at which the enemy starts attacking the player")]
-    [SerializeField] private float attackRange = 1.2f;
     [Tooltip("Patrol points for the enemy to move between. If empty, random points will be generated around spawn.")]
     [SerializeField] private Vector2[] patrolPoints;
     [Tooltip("Number of random patrol points to generate if none are set in the inspector.")]
@@ -83,6 +81,8 @@ public class EnemyAI : MonoBehaviour
     {
         // Update the current state's behavior
         currentState?.Update();
+        // Enemy self-healing logic
+        stats.TryHeal();
 
         // Handle state transitions if the player exists
         if (player != null)
@@ -108,13 +108,13 @@ public class EnemyAI : MonoBehaviour
                     if (distance > chaseRadius)
                         SetState(new EnemyPatrolState(this, patrolPoints, stats.MoveSpeed), EnemyState.Patrol);
                     // Switch to Attack if player is within attack range
-                    else if (distance <= attackRange)
+                    else if (distance <= stats.AttackRange)
                         SetState(new EnemyAttackState(this), EnemyState.Attack);
                     break;
 
                 case EnemyState.Attack:
                     // Return to Chase if player moves out of attack range
-                    if (distance > attackRange)
+                    if (distance > stats.AttackRange)
                         SetState(new EnemyChaseState(this, player, stats.MoveSpeed), EnemyState.Chase);
                     break;
             }

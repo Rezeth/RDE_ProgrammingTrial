@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
-    [SerializeField] private float moveSpeed = 5f; // Speed at which the player moves
+    private PlayerStats playerStats;
     private InputSystem_Actions playerInputActions; // Input System actions for handling player input
     private Vector2 input; // Stores the player's movement input
     private Rigidbody2D rb; // Reference to the Rigidbody2D component
@@ -14,6 +14,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Awake()
     {
+        playerStats = GetComponent<PlayerStats>();
         // Initialize input actions and get the Rigidbody2D component
         playerInputActions = new InputSystem_Actions();
         rb = GetComponent<Rigidbody2D>();
@@ -49,7 +50,7 @@ public class PlayerMovement : MonoBehaviour
         Vector2 isometricInput = input.x * isometricRight + input.y * isometricUp;
 
         // Calculate the new position based on transformed input
-        Vector2 targetPosition = rb.position + isometricInput * moveSpeed * Time.fixedDeltaTime;
+        Vector2 targetPosition = rb.position + isometricInput * playerStats.MoveSpeed * Time.fixedDeltaTime;
 
         // Move the Rigidbody2D to the calculated target position
         rb.MovePosition(targetPosition);
