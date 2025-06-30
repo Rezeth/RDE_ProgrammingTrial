@@ -11,3 +11,8 @@ Task 2: Isometric Player Movement and Input System
 Task 3: AI State Machine for Enemy Behavior
 
 Task 4: Personal Specialization (Combat, Inventory, or Dialogue System) - Of which I have chosen Task 4.1: Implement a Basic Combat System
+
+Gameplay:
+Use WASD or the arrow keys for movement
+Use the space bar for an AoE melee attack
+Use the left mouse button for ranged attack
