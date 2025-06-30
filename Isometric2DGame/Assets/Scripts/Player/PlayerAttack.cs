@@ -2,26 +2,26 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// Handles the player's melee attack logic, including input, cooldown, and damaging enemies.
+/// Handles the player's melee and ranged attack logic, including input, cooldowns, projectile firing, and damaging enemies.
 /// </summary>
 public class PlayerAttack : MonoBehaviour
 {
+    [Tooltip("Prefab for the player's ranged projectile attack.")]
     [SerializeField] private GameObject projectilePrefab;
 
-    // Reference to the player's stats (damage, attack range, cooldown, etc.)
+    // Reference to the player's stats (damage, attack range, cooldowns, etc.)
     private PlayerStats playerStats;
-    // Reference to the input actions for handling player input
+    // Handles input actions for the player (melee and ranged attacks)
     private InputSystem_Actions inputActions;
-    // Tracks the last time the player performed a melee attack
+    // Tracks the last time the player performed a melee attack (for cooldown)
     private float lastAttackTime = -Mathf.Infinity;
-
-    // Tracks the last time the player fired a projectile
+    // Tracks the last time the player fired a projectile (for cooldown)
     private float lastFireTime = -Mathf.Infinity;
-    
+    // Reference to the main camera, used for aiming ranged attacks
     private Camera mainCamera;
 
     /// <summary>
-    /// Initializes references to PlayerStats and input actions.
+    /// Initializes references to PlayerStats, input actions, and the main camera.
     /// </summary>
     private void Awake()
     {
@@ -31,7 +31,7 @@ public class PlayerAttack : MonoBehaviour
     }
 
     /// <summary>
-    /// Enables the input system and subscribes to the melee attack action.
+    /// Enables the input system and subscribes to melee and ranged attack actions.
     /// </summary>
     private void OnEnable()
     {
@@ -41,7 +41,7 @@ public class PlayerAttack : MonoBehaviour
     }
 
     /// <summary>
-    /// Unsubscribes from the melee attack action and disables the input system.
+    /// Unsubscribes from attack actions and disables the input system.
     /// </summary>
     private void OnDisable()
     {
@@ -50,11 +50,19 @@ public class PlayerAttack : MonoBehaviour
         inputActions.Player.Disable();
     }
 
+    /// <summary>
+    /// Called when the ranged attack input is performed.
+    /// Attempts to fire a projectile if the cooldown has elapsed.
+    /// </summary>
+    /// <param name="context">Input action context.</param>
     private void OnRangedAttack(InputAction.CallbackContext context)
     {
         TryFireProjectile();
     }
 
+    /// <summary>
+    /// Attempts to fire a projectile towards the mouse position if the ranged attack cooldown has elapsed.
+    /// </summary>
     private void TryFireProjectile()
     {
         Debug.Log("Attempting to fire projectile...");
@@ -70,7 +78,7 @@ public class PlayerAttack : MonoBehaviour
         // Calculate direction from player to mouse
         Vector2 direction = (mouseWorldPos - transform.position).normalized;
 
-        // Instantiate projectile
+        // Instantiate and initialize the projectile
         var projectileObj = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
         var projectile = projectileObj.GetComponent<PlayerProjectile>();
         projectile.Initialize(
@@ -83,7 +91,7 @@ public class PlayerAttack : MonoBehaviour
 
     /// <summary>
     /// Called when the melee attack input is performed.
-    /// Checks cooldown and triggers the attack if allowed.
+    /// Checks cooldown and triggers the melee attack if allowed.
     /// </summary>
     /// <param name="context">Input action context.</param>
     private void OnMeleeAttack(InputAction.CallbackContext context)
@@ -96,7 +104,7 @@ public class PlayerAttack : MonoBehaviour
     }
 
     /// <summary>
-    /// Performs the melee attack by detecting enemies in range and applying damage.
+    /// Performs the melee attack by detecting enemies in range and applying damage to them.
     /// </summary>
     private void PerformMeleeAttack()
     {
@@ -114,10 +122,11 @@ public class PlayerAttack : MonoBehaviour
                 }
             }
         }
+        // Optionally: play attack animation or sound here
     }
 
     /// <summary>
-    /// Visualizes the player's melee attack range in the Unity editor when selected.
+    /// Visualizes the player's melee attack range in the Unity editor when the player is selected.
     /// </summary>
     private void OnDrawGizmosSelected()
     {
@@ -125,5 +134,4 @@ public class PlayerAttack : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, playerStats != null ? playerStats.MAttackRange : 1.5f);
     }
-
 }
