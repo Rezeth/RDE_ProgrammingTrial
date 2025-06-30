@@ -25,11 +25,13 @@ public class EnemyAI : MonoBehaviour
     private EnemyStats stats;
     private IEnemyState currentState;                          // Current state object
     private EnemyState currentStateType = EnemyState.Patrol;   // Current state type (enum)
+    private SpriteRenderer spriteRenderer;
 
 
     private void Awake()
     {
         stats = GetComponent<EnemyStats>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
     /// <summary>
@@ -143,6 +145,33 @@ public class EnemyAI : MonoBehaviour
         currentState?.Exit();
         currentState = newState;
         currentStateType = stateType;
+        UpdateSpriteColor(stateType);
         currentState?.Enter();
     }
+    /// <summary>
+    /// Updates the sprite color based on the current state of the enemy.
+    /// </summary>
+    /// <param name="state"></param>
+    private void UpdateSpriteColor(EnemyState state)
+    {
+        if (spriteRenderer == null)
+            return;
+
+        switch (state)
+        {
+            case EnemyState.Patrol:
+                spriteRenderer.color = Color.white;
+                break;
+            case EnemyState.Chase:
+                spriteRenderer.color = Color.red;
+                break;
+            case EnemyState.Attack:
+                spriteRenderer.color = Color.black;
+                break;
+            case EnemyState.Idle:
+                spriteRenderer.color = Color.green;
+                break;
+        }
+    }
+
 }
