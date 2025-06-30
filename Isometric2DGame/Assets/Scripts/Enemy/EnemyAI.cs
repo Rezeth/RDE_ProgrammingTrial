@@ -42,28 +42,10 @@ public class EnemyAI : MonoBehaviour
         if (player == null)
             player = GameObject.FindGameObjectWithTag("Player")?.transform;
 
-        Vector2 spawnPos = transform.position;
-
         // If no patrol points are set in the inspector, generate them randomly
         if (patrolPoints == null || patrolPoints.Length < 2)
         {
-            patrolPoints = new Vector2[randomPatrolPointCount];
-            patrolPoints[0] = spawnPos + Random.insideUnitCircle.normalized * patrolRadius;
-
-            int maxAttempts = 20;
-            for (int i = 1; i < randomPatrolPointCount; i++)
-            {
-                int attempts = 0;
-                Vector2 candidate;
-                do
-                {
-                    candidate = spawnPos + Random.insideUnitCircle.normalized * patrolRadius;
-                    attempts++;
-                }
-                while (IsTooCloseToAny(candidate, patrolPoints, i, minPatrolPointDistance) && attempts < maxAttempts);
-
-                patrolPoints[i] = candidate;
-            }
+            GenerateRandomPatrolPoints();
         }
 
         SetState(new EnemyPatrolState(this, patrolPoints, stats.MoveSpeed), EnemyState.Patrol);
@@ -116,10 +98,14 @@ public class EnemyAI : MonoBehaviour
                         // Enter idle, then patrol after idle duration
                         SetState(
                             new EnemyIdleState(this, idleAfterChaseDuration, () =>
-                                SetState(new EnemyPatrolState(this, patrolPoints, stats.MoveSpeed), EnemyState.Patrol)
-                            ),
+                            {
+                                GenerateRandomPatrolPoints();
+                                SetState(new EnemyPatrolState(this, patrolPoints, stats.MoveSpeed), EnemyState.Patrol);
+                            }),
                             EnemyState.Idle
                         );
+
+
                     }
                     // Switch to Attack if player is within attack range
                     else if (distance <= stats.AttackRange)
@@ -173,5 +159,28 @@ public class EnemyAI : MonoBehaviour
                 break;
         }
     }
+
+    private void GenerateRandomPatrolPoints()
+    {
+        Vector2 spawnPos = transform.position;
+        patrolPoints = new Vector2[randomPatrolPointCount];
+        patrolPoints[0] = spawnPos + Random.insideUnitCircle.normalized * patrolRadius;
+
+        int maxAttempts = 20;
+        for (int i = 1; i < randomPatrolPointCount; i++)
+        {
+            int attempts = 0;
+            Vector2 candidate;
+            do
+            {
+                candidate = spawnPos + Random.insideUnitCircle.normalized * patrolRadius;
+                attempts++;
+            }
+            while (IsTooCloseToAny(candidate, patrolPoints, i, minPatrolPointDistance) && attempts < maxAttempts);
+
+            patrolPoints[i] = candidate;
+        }
+    }
+
 
 }
