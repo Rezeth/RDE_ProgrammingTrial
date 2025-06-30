@@ -10526,6 +10526,7 @@ MonoBehaviour:
   randomPatrolPointCount: 2
   patrolRadius: 3
   minPatrolPointDistance: 1.5
+  idleAfterChaseDuration: 5
   player: {fileID: 0}
 --- !u!114 &2008248181
 MonoBehaviour:

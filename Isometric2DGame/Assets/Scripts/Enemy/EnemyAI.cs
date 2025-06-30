@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
 /// <summary>
 /// Controls the enemy's AI state machine, handling transitions between different states.
@@ -15,13 +16,16 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private float patrolRadius = 3f;
     [Tooltip("Minimum distance between patrol points")]
     [SerializeField] private float minPatrolPointDistance = 1.5f;
+    [Tooltip("Time (in seconds) the enemy idles after losing sight of the player before resuming patrol.")]
+    [SerializeField] private float idleAfterChaseDuration = 5f;
     [Tooltip("Reference to the player transform, defaults to an object the the 'Player' tag")]
     [SerializeField] private Transform player;
-
-    public Transform Player => player; // Public property to access the player transform
+   
+    public Transform Player => player;
     private EnemyStats stats;
     private IEnemyState currentState;                          // Current state object
     private EnemyState currentStateType = EnemyState.Patrol;   // Current state type (enum)
+
 
     private void Awake()
     {
@@ -106,7 +110,15 @@ public class EnemyAI : MonoBehaviour
                 case EnemyState.Chase:
                     // Return to Patrol if player is out of chase radius
                     if (distance > chaseRadius)
-                        SetState(new EnemyPatrolState(this, patrolPoints, stats.MoveSpeed), EnemyState.Patrol);
+                    {
+                        // Enter idle, then patrol after idle duration
+                        SetState(
+                            new EnemyIdleState(this, idleAfterChaseDuration, () =>
+                                SetState(new EnemyPatrolState(this, patrolPoints, stats.MoveSpeed), EnemyState.Patrol)
+                            ),
+                            EnemyState.Idle
+                        );
+                    }
                     // Switch to Attack if player is within attack range
                     else if (distance <= stats.AttackRange)
                         SetState(new EnemyAttackState(this), EnemyState.Attack);

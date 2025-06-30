@@ -5,14 +5,23 @@ using UnityEngine;
 /// </summary>
 public class EnemyIdleState : IEnemyState
 {
-    private readonly EnemyAI enemyAI; // Reference to the main AI controller
+    private EnemyAI enemyAI;
+    private float duration;
+    private float timer; // Timer to track idle duration
+    private readonly System.Action onIdleComplete; // Callback for when idle finishes
 
     /// <summary>
     /// Initializes the idle state.
     /// </summary>
-    public EnemyIdleState(EnemyAI enemyAI)
+    /// <param name="ai">Reference to the EnemyAI.</param>
+    /// <param name="duration">How long to idle (seconds).</param>
+    /// <param name="onIdleComplete">Callback to invoke when idle is done.</param>
+    public EnemyIdleState(EnemyAI ai, float duration, System.Action onIdleComplete = null)
     {
-        this.enemyAI = enemyAI;
+        this.enemyAI = ai;
+        this.duration = duration;
+        this.timer = 0f;
+        this.onIdleComplete = onIdleComplete;
     }
 
     /// <summary>
@@ -20,6 +29,8 @@ public class EnemyIdleState : IEnemyState
     /// </summary>
     public void Enter()
     {
+        // Reset the timer and log the state entry
+        timer = 0f;
         AIStateLoggingManager.LogStateEnter("Idle");
     }
 
@@ -29,6 +40,13 @@ public class EnemyIdleState : IEnemyState
     public void Update()
     {
         AIStateLoggingManager.Log("Enemy is idling...");
+
+        timer += Time.deltaTime;
+        if (timer >= duration)
+        {
+            // Notify the state machine that idle is complete
+            onIdleComplete?.Invoke();
+        }
     }
 
     /// <summary>
