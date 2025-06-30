@@ -1,64 +1,102 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+/// <summary>
+/// Handles player movement and visual feedback (color) based on movement direction.
+/// </summary>
 public class PlayerMovement : MonoBehaviour
 {
     private PlayerStats playerStats;
-    private InputSystem_Actions playerInputActions; // Input System actions for handling player input
-    private Vector2 input; // Stores the player's movement input
-    private Rigidbody2D rb; // Reference to the Rigidbody2D component
+    private InputSystem_Actions playerInputActions; // Handles player input actions
+    private Vector2 input; // Raw input from player
+    private Rigidbody2D rb; // Rigidbody2D for movement
+    private SpriteRenderer spriteRenderer; // SpriteRenderer for color changes
 
-    // Rotation matrix to align input with isometric perspective
-    private readonly Vector2 isometricUp = new Vector2(1, 1).normalized; // Northeast
-    private readonly Vector2 isometricRight = new Vector2(1, -1).normalized; // Southeast
+    // Isometric axes for diagonal movement
+    private static readonly Vector2 IsometricUp = new Vector2(1, 1).normalized;    // Northeast
+    private static readonly Vector2 IsometricRight = new Vector2(1, -1).normalized; // Southeast
 
     private void Awake()
     {
         playerStats = GetComponent<PlayerStats>();
-        // Initialize input actions and get the Rigidbody2D component
         playerInputActions = new InputSystem_Actions();
         rb = GetComponent<Rigidbody2D>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
     private void OnEnable()
     {
-        // Enable the input action map
         playerInputActions.Player.Enable();
     }
 
     private void OnDisable()
     {
-        // Disable the input action map
         playerInputActions.Player.Disable();
     }
 
     private void Update()
     {
-        // Gather player input every frame
         GatherInput();
     }
 
     private void FixedUpdate()
     {
-        // Move the player using physics calculations
         Move();
     }
 
+    /// <summary>
+    /// Moves the player and updates the sprite color based on movement direction.
+    /// </summary>
     private void Move()
     {
-        // Transform input to isometric space
-        Vector2 isometricInput = input.x * isometricRight + input.y * isometricUp;
+        // Convert input to isometric movement vector
+        Vector2 isometricInput = input.x * IsometricRight + input.y * IsometricUp;
 
-        // Calculate the new position based on transformed input
+        // Move the player
         Vector2 targetPosition = rb.position + isometricInput * playerStats.MoveSpeed * Time.fixedDeltaTime;
-
-        // Move the Rigidbody2D to the calculated target position
         rb.MovePosition(targetPosition);
+
+        // Update color based on movement direction
+        SetColorByDirection(isometricInput);
     }
 
+    /// <summary>
+    /// Sets the player's color based on the isometric movement direction.
+    /// </summary>
+    /// <param name="moveDir">Isometric movement vector.</param>
+    private void SetColorByDirection(Vector2 moveDir)
+    {
+        if (spriteRenderer == null)
+            return;
+
+        if (moveDir.sqrMagnitude < 0.001f)
+        {
+            spriteRenderer.color = Color.white; // Idle
+            return;
+        }
+
+        float angle = Mathf.Atan2(moveDir.y, moveDir.x) * Mathf.Rad2Deg;
+
+        // Define color for each isometric direction
+        // Right/Southeast: -45 to 45
+        // Up/Northeast: 45 to 135
+        // Down/Southwest: -135 to -45
+        // Left/Northwest: otherwise
+        if (angle >= -45 && angle < 45)
+            spriteRenderer.color = Color.red;      // Right/Southeast
+        else if (angle >= 45 && angle < 135)
+            spriteRenderer.color = Color.blue;     // Up/Northeast
+        else if (angle >= -135 && angle < -45)
+            spriteRenderer.color = Color.yellow;   // Down/Southwest
+        else
+            spriteRenderer.color = Color.green;    // Left/Northwest
+    }
+
+    /// <summary>
+    /// Reads movement input from the Input System.
+    /// </summary>
     private void GatherInput()
     {
-        // Read movement input from the Input System
         input = playerInputActions.Player.Move.ReadValue<Vector2>();
     }
 }
