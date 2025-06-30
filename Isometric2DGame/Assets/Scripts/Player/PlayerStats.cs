@@ -23,11 +23,13 @@ public class PlayerStats : MonoBehaviour
     
     [Header("Ranged Combat")]
     [Tooltip("Range of the player's ranged attack")]
-    [SerializeField] private float rAttackRange = 10f;
+    [SerializeField] private float rAttackRange = 5f;
     [Tooltip("Cooldown time in seconds between ranged attacks")]
     [SerializeField] private float rAttackCooldown = 0.5f;
     [Tooltip("Damage dealt by the player's ranged attack")]
     [SerializeField] private int rDamage = 20;
+    [Tooltip("Speed of the player's ranged attack projectile")]
+    [SerializeField] private float rProjectileSpeed = 10f;
 
     public int MaxHealth => maxHealth;
     public float MoveSpeed => moveSpeed;
@@ -37,5 +39,6 @@ public class PlayerStats : MonoBehaviour
     public float RAttackRange => rAttackRange;
     public float RAttackCooldown => rAttackCooldown;
     public int RDamage => rDamage;
+    public float RProjectileSpeed => rProjectileSpeed;
 
 }

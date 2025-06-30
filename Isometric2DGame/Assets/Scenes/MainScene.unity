@@ -9998,6 +9998,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1386382836415000600, guid: ef8497241c2b9714e9b8a957712e37ef, type: 3}
+      propertyPath: projectilePrefab
+      value: 
+      objectReference: {fileID: 2139380459887138173, guid: e787125fb2b43ad4699886d79f9d0698, type: 3}
+    - target: {fileID: 5211768602462498305, guid: ef8497241c2b9714e9b8a957712e37ef, type: 3}
+      propertyPath: rAttackRange
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 5219565218262897028, guid: ef8497241c2b9714e9b8a957712e37ef, type: 3}
       propertyPath: m_Name
       value: PlayerCharacter

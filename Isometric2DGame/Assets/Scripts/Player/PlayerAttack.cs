@@ -6,12 +6,19 @@ using UnityEngine.InputSystem;
 /// </summary>
 public class PlayerAttack : MonoBehaviour
 {
+    [SerializeField] private GameObject projectilePrefab;
+
     // Reference to the player's stats (damage, attack range, cooldown, etc.)
     private PlayerStats playerStats;
     // Reference to the input actions for handling player input
     private InputSystem_Actions inputActions;
     // Tracks the last time the player performed a melee attack
     private float lastAttackTime = -Mathf.Infinity;
+
+    // Tracks the last time the player fired a projectile
+    private float lastFireTime = -Mathf.Infinity;
+    
+    private Camera mainCamera;
 
     /// <summary>
     /// Initializes references to PlayerStats and input actions.
@@ -20,6 +27,7 @@ public class PlayerAttack : MonoBehaviour
     {
         playerStats = GetComponent<PlayerStats>();
         inputActions = new InputSystem_Actions();
+        mainCamera = Camera.main;
     }
 
     /// <summary>
@@ -29,6 +37,7 @@ public class PlayerAttack : MonoBehaviour
     {
         inputActions.Player.Enable();
         inputActions.Player.MeleeAttack.performed += OnMeleeAttack;
+        inputActions.Player.RangedAttack.performed += OnRangedAttack;
     }
 
     /// <summary>
@@ -37,7 +46,39 @@ public class PlayerAttack : MonoBehaviour
     private void OnDisable()
     {
         inputActions.Player.MeleeAttack.performed -= OnMeleeAttack;
+        inputActions.Player.RangedAttack.performed -= OnRangedAttack;
         inputActions.Player.Disable();
+    }
+
+    private void OnRangedAttack(InputAction.CallbackContext context)
+    {
+        TryFireProjectile();
+    }
+
+    private void TryFireProjectile()
+    {
+        Debug.Log("Attempting to fire projectile...");
+        if (Time.time - lastFireTime < playerStats.RAttackCooldown)
+            return;
+
+        lastFireTime = Time.time;
+
+        // Get mouse position in world space
+        Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+        mouseWorldPos.z = 0f;
+
+        // Calculate direction from player to mouse
+        Vector2 direction = (mouseWorldPos - transform.position).normalized;
+
+        // Instantiate projectile
+        var projectileObj = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
+        var projectile = projectileObj.GetComponent<PlayerProjectile>();
+        projectile.Initialize(
+            direction,
+            playerStats.RProjectileSpeed,
+            playerStats.RAttackRange,
+            playerStats.RDamage
+        );
     }
 
     /// <summary>
@@ -84,4 +125,5 @@ public class PlayerAttack : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, playerStats != null ? playerStats.MAttackRange : 1.5f);
     }
+
 }
